@@ -1,43 +1,22 @@
 var express = require('express');
 var https = require('https');
-var fs = require('fs');
+var crypto = require('crypto');
 
 var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('weather.html', { root: 'public' });
+  res.render('index.html', { root: 'public' });
 });
 
-/* GET city page. */
-router.get('/getcity', function (req, res, next) {
-    console.log("In getcity route");
-    fs.readFile(__dirname + '/cities.dat.txt',function(err,data) {
-        if(err) throw err;
-        
-        var cities = data.toString().split("\n");
-        
-        var myRe = new RegExp("^" + req.query.q);
-        console.log("MYRE: " + myRe);
-        
-        var jsonresult = [];
-        for(var i = 0; i < cities.length; i++) {
-            var result = cities[i].search(myRe); 
-            if(result != -1) {
-                console.log(cities[i]);
-                jsonresult.push({city:cities[i]});
-            } 
-        }
-        console.log("JSON RESULTS: " + jsonresult);
-        res.status(200).json(jsonresult);
-    });
-});
-
-/* GET words page. */
-router.get("/owlRoute/:word", function (req, res, next) {
-    console.log("In owlRoute route");
-    // Get info from OWL api and return to weather.html
-    var url = `https://owlbot.info/api/v1/dictionary/${req.params.word}`;
+/* GET Marvel API. */
+router.get("/api/:word", function (req, res, next) {
+    const publicapikey = `9bad5f95cb6de3695232e0b392317c17`;
+    const privateapikey = `e6b3ffe5845cffeb9da4bacd494f71ee2ec5ce85`;
+    const ts = Date.now();
+    const hashdata = `${ts}${privateapikey}${publicapikey}`;
+    const hash = crypto.createHash('md5').update(hashdata).digest("hex");
+    var url = `https://gateway.marvel.com:443/v1/public/characters?name=${req.params.word}&apikey=${publicapikey}&ts=${ts}&hash=${hash}`;
     console.log(url);
     https.get(url, (response) => {
         if (response.statusCode !== 200) {
@@ -47,14 +26,17 @@ router.get("/owlRoute/:word", function (req, res, next) {
         var output = [];
         response.setEncoding('utf8');
         response.on("data", function (data) {
+            console.log("data receieved");
             output.push(data);
         });
-        response.on("end", function (data) {
-            var owlJson = JSON.parse(output.join(''));
-            res.status(200).json(owlJson);
+        response.on("end", function () {
+            console.log("data end");
+            var data = JSON.parse(output.join(''));
+            res.status(200).json(data);
         });
     }).on("error", function (data) {
         res.status(500).send();
     });
+    
 });
 module.exports = router;

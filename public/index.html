@@ -2,7 +2,6 @@
 <head>
   <title>Joe's Lab 4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
   <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
@@ -10,65 +9,60 @@
 </head>
 <body class="bg-light text-dark">
 
-<div class="jumbotron p-3 mb-2 bg-warning text-dark">
-  <h1 class="display-6">Node.js Express Lab 4!</h1>
-  <p class="lead">This is a simple page that displays information using Node.js to access a REST API service.</p>
-  <hr>
+<div class="jumbotron p-2 m-9 bg-danger text-white">
+  <h1 class="display-6">Node.js Express Creative Project!</h1>
+  <p class="lead">This is my creative project using Node.js to access <span style="color: black; font-weight: bold;">Marvel's</span> REST API service.</p>
+  <hr class="my-2 bg-dark">
+  <p>Enter a Marvel Hero's name as found on Marvel.com and click search to learn something about the hero and see a reference picture.</p>
 </div>
 
 <div class="container-fluid">
   <div class="row">
     <div class="col">
-      <div class="input-group mt-3 mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text" id="inputGroup-sizing-default">Enter a Utah city:</span>
+      <div class="input-group mb-3">
+        <input id="apifield" type="text" class="form-control" placeholder="Hero's Name (e.g. Thor, Spider-Man, or Iron Man)">
+        <div class="input-group-append">
+          <button class="btn btn-primary" type="button">Search</button>
         </div>
-        <input class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" type="text" id="cityfield" value=""><br>
       </div>
-    Suggestion: <span id="txtHint">Empty</span><br> <br>
+      <span id="about" hidden>About: <span id="area">Empty</span></span> <br> <br>
+      <img id="picture"></img> <br> <br>
+      <p><small id="attr"></small></p>
     </div>
-    <div class="col">
-      <div class="input-group mt-3 mb-3">
-        <div class="input-group-prepend">
-          <span class="input-group-text" id="inputGroup-sizing-default">Enter a word:</span>
-        </div>
-        <input class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default" type="text" id="wordsfield" value=""><br>
-      </div>
-      Definitions: <span id="defArea">None</span><br>
-    </div>
-  </div>  
+  </div>
+</div>
+
+<div class="footer fixed-bottom bg-danger text-white p-1">
+  Created by: Joseph S. Morrow
 </div>
 
 <script>
-
 $( document ).ready(function() {
-  $( "#cityfield" ).keyup(function() {
-    var url = "getcity?q="+$("#cityfield").val();
+  $( ".input-group .btn" ).click(function() {
+    var url = "api/"+$("#apifield").val();
     $.getJSON(url, function(data) {
-      var everything;
-      everything = "<ul>";
-      $.each(data, function(i,item) {
-        everything += "<li> "+data[i].city;
-      });
-      everything += "</ul>";
-      $("#txtHint").html(everything);
-    });
-  });
-  
-  $( "#wordsfield" ).keyup(function() {
-    var url = "owlRoute/"+$("#wordsfield").val();
-    $.getJSON(url, function(data) {
-      var definitions;
-      definitions = "<ul>";
-      $.each(data, function(i,item) {
-        definitions += "<li>" + item.defenition;
-      });
-      definitions += "</ul>";
-      $("#defArea").html(definitions);
+      console.log(data);
+      if (data.data.results.length > 0) {
+        var result = data.data.results[0];
+        var details = result.description;
+        var imagepath = result.thumbnail.path;
+        var imageext = result.thumbnail.extension;
+        var imageurl = `${imagepath}/portrait_xlarge.${imageext}`;
+        var attribute = data.attributionHTML;
+        
+        $("#about").removeAttr("hidden");
+        $("#area").html(details);
+        $("#picture").attr("src", imageurl);
+        $("#attr").html(attribute);
+      } else {
+        alert("Not Found");
+      }
+    }).fail(function() {
+    alert("Something Went Wrong!")
     });
   });
 });
-
 </script>
+
 </body>
 </html>
